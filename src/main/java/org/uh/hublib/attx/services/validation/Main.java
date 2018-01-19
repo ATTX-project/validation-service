@@ -33,6 +33,7 @@ public class Main {
             // also as the shapes model - you may have them separated
             Resource report = ValidationUtil.validateModel(dataModel, dataModel, true);
 
+
             // Print violations
             System.out.println(ModelPrinter.get().print(report.getModel()));
 

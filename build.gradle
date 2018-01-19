@@ -46,6 +46,7 @@ dependencies {
     compile 'com.rabbitmq:amqp-client:5.1.2'
     compile 'org.apache.jena:jena-arq:3.5.0'
     compile 'com.googlecode.json-simple:json-simple:1.1.1'
+    compile 'org.xerial:sqlite-jdbc:3.21.0'
     testCompile 'junit:junit:4.+'
     testCompile "org.mockito:mockito-core:2.+"
 }
