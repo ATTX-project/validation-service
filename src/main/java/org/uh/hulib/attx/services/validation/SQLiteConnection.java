@@ -24,7 +24,7 @@ public class SQLiteConnection {
         // SQL statement for creating a new table
         String sql = "CREATE TABLE IF NOT EXISTS reports (\n"
                 + "	id integer PRIMARY KEY,\n"
-                + "	reportid real NOT NULL,\n"
+                + "	reportid text NOT NULL,\n"
                 + "	result text\n"
                 + ");";
         Connection conn = this.connect();
@@ -46,15 +46,14 @@ public class SQLiteConnection {
 
     /**
      * Insert a new row into the reports table
-     *
-     * @param reportid
+     *  @param reportid
      * @param result
      */
-    public void insert(double reportid, String result) {
+    public void insert(String reportid, String result) {
         String sql = "INSERT INTO reports(reportid,result) VALUES(?,?)";
         Connection conn = this.connect();
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setDouble(1, reportid);
+            pstmt.setString(1, reportid);
             pstmt.setString(2, result);
             pstmt.executeUpdate();
             Statement stmt = conn.createStatement();

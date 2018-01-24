@@ -1,12 +1,17 @@
 package org.uh.hulib.attx.services.validation;
 
 import static spark.Spark.*;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.topbraid.spin.util.JenaUtil;
 import org.apache.jena.rdf.model.Model;
 import org.apache.jena.rdf.model.Resource;
 import org.apache.jena.util.FileUtils;
 import org.topbraid.shacl.util.ModelPrinter;
 import org.topbraid.shacl.validation.ValidationUtil;
+
+import java.io.ByteArrayInputStream;
 
 public class Main {
     public static void main(String[] args) {
@@ -22,16 +27,25 @@ public class Main {
 
 
         post(String.format("/%s/validate", apiVersion), "application/json", (request, response) -> {
+
             String content = request.body();
+            ObjectMapper objectMapper = new ObjectMapper();
+            JsonNode jsonNode = objectMapper.readTree(content);
+            String shapesGraph = jsonNode.get("shapesGraph").asText();
+            String dataGraph = jsonNode.get("dataGraph").asText();
+
+            SQLiteConnection data = SQLiteConnection.main();
 
             // Load the main data model
             Model dataModel = JenaUtil.createMemoryModel();
-//            dataModel.read(ValidationExample.class.getResourceAsStream("/sh/tests/core/property/class-001.test.ttl"), "urn:dummy", FileUtils.langTurtle);
-            dataModel.read("https://raw.githubusercontent.com/TopQuadrant/shacl/master/src/test/resources/sh/tests/core/property/class-001.test.ttl", "urn:dummy", FileUtils.langTurtle);
+            Model shapeModel = JenaUtil.createMemoryModel();
+
+            dataModel.read(new ByteArrayInputStream(dataGraph.getBytes()) , "urn:attx", FileUtils.langTurtle);
+            shapeModel.read(new ByteArrayInputStream(shapesGraph.getBytes()) , "urn:attx", FileUtils.langTurtle);
 
             // Perform the validation of everything, using the data model
             // also as the shapes model - you may have them separated
-            Resource report = ValidationUtil.validateModel(dataModel, dataModel, true);
+            Resource report = ValidationUtil.validateModel(dataModel, shapeModel, true);
 
 
             // Print violations
@@ -39,7 +53,9 @@ public class Main {
 
             String result = ModelPrinter.get().print(report.getModel());
 
-            response.status(200); // 200 Created
+            data.insert("1", result);
+
+            response.status(200); // 200 Done
             response.type("text/plain");
             return result;
         });
@@ -47,8 +63,6 @@ public class Main {
         get(String.format("/%s/report/:reportID", apiVersion), (request, response) -> {
             String id = request.params(":reportID");
 
-            SQLiteConnection data = SQLiteConnection.main();
-            data.insert(Double.parseDouble(id), "result");
             return "Hello: " + id;
         });
 
