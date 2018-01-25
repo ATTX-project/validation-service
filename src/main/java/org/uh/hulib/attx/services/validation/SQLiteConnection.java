@@ -24,7 +24,7 @@ public class SQLiteConnection {
         // SQL statement for creating a new table
         String sql = "CREATE TABLE IF NOT EXISTS reports (\n"
                 + "	id integer PRIMARY KEY,\n"
-                + "	reportid text NOT NULL,\n"
+                + "	reportid integer NOT NULL,\n"
                 + "	result text\n"
                 + ");";
         Connection conn = this.connect();
@@ -49,22 +49,22 @@ public class SQLiteConnection {
      *  @param reportid
      * @param result
      */
-    public void insert(String reportid, String result) {
+    public void insert(Integer reportid, String result) {
         String sql = "INSERT INTO reports(reportid,result) VALUES(?,?)";
         Connection conn = this.connect();
         try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
-            pstmt.setString(1, reportid);
+            pstmt.setInt(1, reportid);
             pstmt.setString(2, result);
             pstmt.executeUpdate();
-            Statement stmt = conn.createStatement();
-            stmt.setQueryTimeout(30);  // set timeout to 30 sec.
-            ResultSet rs = stmt.executeQuery("select * from reports");
-            while(rs.next())
-            {
-                // read the result set
-                System.out.println("result = " + rs.getString("result"));
-                System.out.println("reportid = " + rs.getDouble("reportid"));
-            }
+//            Statement stmt = conn.createStatement();
+//            stmt.setQueryTimeout(30);  // set timeout to 30 sec.
+//            ResultSet rs = stmt.executeQuery("select * from reports");
+//            while(rs.next())
+//            {
+//                // read the result set
+//                System.out.println("result = " + rs.getString("result"));
+//                System.out.println("reportid = " + rs.getInt("reportid"));
+//            }
         } catch (SQLException e) {
             System.out.println(e.getMessage());
         } finally {
@@ -76,6 +76,32 @@ public class SQLiteConnection {
                 System.err.println(e);
             }
         }
+    }
+
+    public String retrieve(Integer reportid) {
+        Connection conn = this.connect();
+        String reportResult = "select * from reports where reportid = ?";
+        String report = null;
+        try {
+            PreparedStatement stmt = conn.prepareStatement(reportResult);
+            stmt.setQueryTimeout(30);  // set timeout to 30 sec.
+            stmt.setInt(1, reportid);
+            ResultSet rs = stmt.executeQuery();
+            System.out.println("result = " + rs.getString("result"));
+            report = rs.getString("result");
+
+        } catch (SQLException e) {
+            System.out.println(e.getMessage());
+        } finally {
+            try {
+                if (conn != null)
+                    conn.close();
+            } catch (SQLException e) {
+                // conn close failed.
+                System.err.println(e);
+            }
+        }
+        return report;
     }
 
     public static SQLiteConnection main() {

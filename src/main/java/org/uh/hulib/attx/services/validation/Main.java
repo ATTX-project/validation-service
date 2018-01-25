@@ -4,14 +4,7 @@ import static spark.Spark.*;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import org.topbraid.spin.util.JenaUtil;
-import org.apache.jena.rdf.model.Model;
-import org.apache.jena.rdf.model.Resource;
-import org.apache.jena.util.FileUtils;
-import org.topbraid.shacl.util.ModelPrinter;
-import org.topbraid.shacl.validation.ValidationUtil;
-
-import java.io.ByteArrayInputStream;
+import java.util.Random;
 
 public class Main {
     public static void main(String[] args) {
@@ -31,39 +24,47 @@ public class Main {
             String content = request.body();
             ObjectMapper objectMapper = new ObjectMapper();
             JsonNode jsonNode = objectMapper.readTree(content);
-            String shapesGraph = jsonNode.get("shapesGraph").asText();
-            String dataGraph = jsonNode.get("dataGraph").asText();
 
             SQLiteConnection data = SQLiteConnection.main();
+            String result = null;
 
-            // Load the main data model
-            Model dataModel = JenaUtil.createMemoryModel();
-            Model shapeModel = JenaUtil.createMemoryModel();
+            if (jsonNode.has("shapesGraph")) {
+                // Load the main data model
+                String shapesGraph = jsonNode.get("shapesGraph").asText();
+                String dataGraph = jsonNode.get("dataGraph").asText();
 
-            dataModel.read(new ByteArrayInputStream(dataGraph.getBytes()) , "urn:attx", FileUtils.langTurtle);
-            shapeModel.read(new ByteArrayInputStream(shapesGraph.getBytes()) , "urn:attx", FileUtils.langTurtle);
+                result = SHACLUtils.SHACLValitateText(dataGraph, shapesGraph);
+            } else {
+                String dataGraph = jsonNode.get("dataGraph").asText();
 
-            // Perform the validation of everything, using the data model
-            // also as the shapes model - you may have them separated
-            Resource report = ValidationUtil.validateModel(dataModel, shapeModel, true);
+                result = SHACLUtils.SHACLValitateText(dataGraph, null);
+            }
 
+            Random rand = new Random();
 
-            // Print violations
-            System.out.println(ModelPrinter.get().print(report.getModel()));
-
-            String result = ModelPrinter.get().print(report.getModel());
-
-            data.insert("1", result);
+            int n = rand.nextInt(500000) + 1;
+            data.insert(n, result);
 
             response.status(200); // 200 Done
-            response.type("text/plain");
+            response.type("text/turtle");
             return result;
         });
 
         get(String.format("/%s/report/:reportID", apiVersion), (request, response) -> {
             String id = request.params(":reportID");
+            String result = null;
 
-            return "Hello: " + id;
+            SQLiteConnection data = new SQLiteConnection();
+            try {
+                result = data.retrieve(Integer.parseInt(id));
+                response.status(200); // 200 Done
+                response.type("text/turtle");
+
+            } catch (Exception e) {
+                response.status(404); // 404 Done
+                response.type("html/text");
+            }
+            return result;
         });
 
 
