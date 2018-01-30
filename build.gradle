@@ -53,37 +53,37 @@ dependencies {
     testCompile "org.mockito:mockito-core:2.+"
 }
 
-// uploadArchives {
-//     repositories {
-//         mavenDeployer {
-//             repository(url: "${artifactRepoURL}") {
-//                   authentication(userName: "${artifactRepoUser}", password: "${artifactRepoPassword}")
-//             }
-//             pom.project {
-//                 version = "${version}"
-//                 groupId = jar.group
-//                 description "Ontology Service."
-//             }
-//         }
-//     }
-// }
-
-publishing {
+uploadArchives {
     repositories {
-        maven {
-            url "${artifactRepoURL}/repository/attx-releases"
-            credentials {
-                username "${artifactRepoUser}"
-                password "${artifactRepoPassword}"
+        mavenDeployer {
+            repository(url: "${artifactRepoURL}") {
+                  authentication(userName: "${artifactRepoUser}", password: "${artifactRepoPassword}")
+            }
+            pom.project {
+                version = "${version}"
+                groupId = jar.group
+                description "Validation Service."
             }
         }
     }
-    publications {
-        mavenJava(MavenPublication) {
-            groupId jar.group
-            artifactId jar.baseName
-            version jar.version
-            from components.java
-        }
-    }
 }
+
+// publishing {
+//     repositories {
+//         maven {
+//             url "${artifactRepoURL}/repository/attx-releases"
+//             credentials {
+//                 username "${artifactRepoUser}"
+//                 password "${artifactRepoPassword}"
+//             }
+//         }
+//     }
+//     publications {
+//         mavenJava(MavenPublication) {
+//             groupId jar.group
+//             artifactId jar.baseName
+//             version jar.version
+//             from components.java
+//         }
+//     }
+// }
