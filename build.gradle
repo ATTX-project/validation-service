@@ -30,7 +30,7 @@ compileJava {
 
 jar {
     baseName = 'validation-service'
-    group    = 'org.uh.hulib.attx.services.validation'
+    group    = 'org.uh.hulib.attx.services'
     version  = '1.0.0-SNAPSHOT'
     manifest { attributes "Main-Class": mainClassName }
 }
