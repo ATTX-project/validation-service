@@ -54,6 +54,8 @@ public class RPCServer {
         factory.setPassword(getPassword());
         factory.setUsername(getUsername());
         factory.setHost(getBrokerURI());
+        factory.setNetworkRecoveryInterval(5000);
+        factory.setAutomaticRecoveryEnabled(true);
 
         Connection connection = null;
         try {
